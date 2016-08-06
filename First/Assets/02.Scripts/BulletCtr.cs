@@ -7,10 +7,8 @@ public class BulletCtr : MonoBehaviour {
     public float speed = 1000.0f;
 
 	void Start () {
-	
-	}
-	
-	void Update () {
         GetComponent<Rigidbody>().AddForce(transform.forward * speed);
-	}
+    }
+	
+	
 }
