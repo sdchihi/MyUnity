@@ -45,7 +45,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\02.Scripts\BulletCtr.cs" />
+     <Compile Include="Assets\02.Scripts\FollowCam.cs" />
      <Compile Include="Assets\02.Scripts\PlayerCtr.cs" />
+     <Compile Include="Assets\02.Scripts\WallCtr.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
