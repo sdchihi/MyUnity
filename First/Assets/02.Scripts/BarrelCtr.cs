@@ -11,10 +11,11 @@ public class BarrelCtr : MonoBehaviour {
     //무작위로 텍스쳐를 연결할 배열
     public Texture[] textures;
 
-	void Start () {
+	void Start(){
         tr = GetComponent<Transform>();
 
         int idx = Random.Range(0, textures.Length);
+
         GetComponentInChildren<MeshRenderer>().material.mainTexture = textures[idx];
 	}
 
