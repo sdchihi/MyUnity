@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/04.Scene/scPlay.unity
+  isLoaded: 1
+  isActive: 1
