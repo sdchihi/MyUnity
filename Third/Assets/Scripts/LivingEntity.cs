@@ -20,13 +20,8 @@ public class LivingEntity : MonoBehaviour , IDamageable {
     }
 
     public void TakeHit(float damage, RaycastHit hit) {
-
-        health -= damage;
-
-        if (health <= 0 && ! dead )
-        {
-            Die();
-        }
+        //do some stuff here        아마 파티클 효과 생성할듯
+        TakeDamage(damage);
     }
 
     protected void Die() {
@@ -36,5 +31,14 @@ public class LivingEntity : MonoBehaviour , IDamageable {
             OnDeath();
         }
         dead = true;
+    }
+
+    public void TakeDamage(float damage) {
+        health -= damage;
+
+        if (health <= 0 && !dead)
+        {
+            Die();
+        }
     }
 }
