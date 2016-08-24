@@ -8,10 +8,18 @@ public class MapEditor : Editor {
     //에디터를 사용함으로써 굳이 게임을 실행하지 않더라도 리얼타임으로 상태를 갱신할수있다.
     public override void OnInspectorGUI()
     {
-        base.OnInspectorGUI();
         MapGenerator map = target as MapGenerator;      //CustomEditor로 다룰거라고 선언한 오브젝트는 target으로 접근이 가능하다.
 
-        map.GenerateMap();
+        //base.OnInspectorGUI();
+        if (DrawDefaultInspector())         //인스펙터에서 값이 갱신되었을때만 true리턴
+        {
+            map.GenerateMap();
+        }
+
+        if(GUILayout.Button("Generate Map"))
+        {
+            map.GenerateMap();
+        }
     }
 
 }
