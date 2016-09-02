@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 
+using System.Collections.Generic;
 public class MapGenerator : MonoBehaviour
 {
     public Map[] maps;
@@ -21,8 +21,11 @@ public class MapGenerator : MonoBehaviour
 
     List<Coord> allTileCoords;
     Queue<Coord> shuffledTileCoords;
+    Queue<Coord> shuffledOpenTileCoords;
+    Transform[,] tileMap;
 
     Map currentMap;
+
 
     void Start() {
         GenerateMap();
@@ -31,6 +34,7 @@ public class MapGenerator : MonoBehaviour
     public void GenerateMap() {
         
         currentMap = maps[mapIndex];
+        tileMap = new Transform[currentMap.mapSize.x, currentMap.mapSize.y];
         System.Random prng = new System.Random(currentMap.seed);
         GetComponent<BoxCollider>().size = new Vector3(currentMap.mapSize.x * tileSize, 0.05f, currentMap.mapSize.y*tileSize);
 
@@ -46,12 +50,12 @@ public class MapGenerator : MonoBehaviour
 
         //맵홀더 오브젝트생성 (상하위구조)
         string holderName = "Generated map";
-        if (transform.FindChild(holderName))
+        if (transform.FindChild(holderName))        //Generated Map 아래 차일드 게임오브젝트가 존재하면 ??
         {
             DestroyImmediate(transform.FindChild(holderName).gameObject);       //에디터에서 실행할거라서 destroy가아닌 destroyImmediate
         }
 
-        Transform mapHolder = new GameObject(holderName).transform;
+        Transform mapHolder = new GameObject(holderName).transform;         //Generated Map 게임오브젝트를 Map아래 (하위)로 생성
         mapHolder.parent = transform;
 
 
@@ -61,9 +65,10 @@ public class MapGenerator : MonoBehaviour
                 //맵을 생성할 위치설정
                 Vector3 tilePosition = CoordToPosition(x, y);
                 Transform newTile = Instantiate(tilePrefab, tilePosition, Quaternion.Euler(Vector3.right *90)) as Transform;
-                newTile.localScale = Vector3.one * (1 - outLinePercent) * tileSize;    //테두리 결정
+                newTile.localScale = Vector3.one * (1 - outLinePercent) * tileSize;    // localScale로 크기 결정.  (즉 간격 설정해주는 기능)
 
                 newTile.parent = mapHolder;
+                tileMap[x, y] = newTile;
             }
         }
         
@@ -73,11 +78,13 @@ public class MapGenerator : MonoBehaviour
         //장애물 생성
         int obstacleCount = (int)(currentMap.mapSize.x * currentMap.mapSize.y * currentMap.obstaclePercent);
         int currentObstacleCount = 0;
+        List<Coord> allOpenCoords = new List<Coord>(allTileCoords);     //모든좌표의 타일을 리스트에 담아놨다가 장애물 생싱할때마다 빼줍니다.
         for (int i = 0; i < obstacleCount; i++) {
             Coord randomCoord = GetRandomCoord();
             obstacleMap[randomCoord.x,randomCoord.y] = true;
             currentObstacleCount++;
 
+            //밑에 조건문  해석 - > random으로 얻어온 좌표가 중앙이 아니거나!  접근할수없는 블록이 아닐경우
             if (randomCoord != currentMap.mapCenter && MapIsFullyAccessible(obstacleMap, currentObstacleCount))
             {
                 float obstacleHeight = Mathf.Lerp(currentMap.minObstacleHeight, currentMap.maxObstacleHeight, (float)prng.NextDouble());
@@ -85,12 +92,15 @@ public class MapGenerator : MonoBehaviour
                 Transform newObstacle = Instantiate(obstaclePrefab, obstaclePosition + Vector3.up * obstacleHeight / 2 , Quaternion.identity) as Transform;
                 newObstacle.parent = mapHolder;
                 newObstacle.localScale =new Vector3(((1 - outLinePercent) * tileSize),obstacleHeight,((1 - outLinePercent) * tileSize));
-
+                
+                //밑에는 맵마다 material을 다르게 적용시키기 위한코드 ( 색 )
                 Renderer obstacleRenderer = newObstacle.GetComponent<Renderer>();
                 Material obstacleMaterial = new Material(obstacleRenderer.sharedMaterial);
-                float colorPercent = randomCoord.y / (float)currentMap.mapSize.y;
+                float colorPercent = randomCoord.y / (float)currentMap.mapSize.y;           //y값에따른 그라데이션
                 obstacleMaterial.color = Color.Lerp(currentMap.foregroundColor, currentMap.backgroundColor, colorPercent);
-                obstacleRenderer.sharedMaterial = obstacleMaterial;
+                obstacleRenderer.sharedMaterial = obstacleMaterial;         //좀 번거롭지만 Swap처럼 사용하는것같다.
+
+                allOpenCoords.Remove(randomCoord);
             }
             else {
                 obstacleMap[randomCoord.x, randomCoord.y] = false;
@@ -98,7 +108,7 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-
+        shuffledOpenTileCoords = new Queue<Coord>(Utility.ShuffleArray(allOpenCoords.ToArray(), currentMap.seed));
         // nav mesh obstacle생성을 위한 부분이요 
         Transform leftMask = Instantiate(navmeshMaskPrefab, Vector3.left*(currentMap.mapSize.x + maxMapSize.x) / 4f * tileSize, Quaternion.identity)as Transform;
         leftMask.parent = mapHolder;
@@ -168,10 +178,28 @@ public class MapGenerator : MonoBehaviour
         return new Vector3(-currentMap.mapSize.x / 2f + 0.5f + x, 0, -currentMap.mapSize.y / 2f + 0.5f + y) *tileSize; 
     }
 
-    public Coord GetRandomCoord() {
+    public Transform GetTileFromPosition(Vector3 position)
+    {
+        int x = Mathf.RoundToInt((position.x / tileSize + (currentMap.mapSize.x - 1) / 2f));        //그냥 형변환 하면 내림밖에 안함.
+        int y = Mathf.RoundToInt((position.z / tileSize + (currentMap.mapSize.y - 1) / 2f));
+
+        x = Mathf.Clamp(x, 0, tileMap.GetLength(0)-1);
+        y = Mathf.Clamp(y, 0, tileMap.GetLength(1)-1);
+        return tileMap[x, y];
+    }
+
+    public Coord GetRandomCoord()
+    {
         Coord randomCoord = shuffledTileCoords.Dequeue();
         shuffledTileCoords.Enqueue(randomCoord);        //랜덤하게 저장된 coord 큐에서 deque했다가 다시 맨뒤로 enqueue해줌..
         return randomCoord;
+    }
+
+    public Transform GetRandomOpenTile()
+    {
+        Coord randomCoord = shuffledOpenTileCoords.Dequeue();
+        shuffledOpenTileCoords.Enqueue(randomCoord);        //랜덤하게 저장된 coord 큐에서 deque했다가 다시 맨뒤로 enqueue해줌..
+        return tileMap[randomCoord.x, randomCoord.y];
     }
 
 
