@@ -14,6 +14,7 @@ public class Gun : MonoBehaviour {
 
         if (Time.time > nextShotTime)
         {
+            //슈팅간 간격설정하는 방법. 쏠때마다 시간을 갱신한다.
             nextShotTime = Time.time + msBetweenShots / 1000 ;
             Projectile newProjectile = Instantiate(projectile, muzzle.position, muzzle.rotation) as Projectile;
             newProjectile.setSpeed(muzzleVelocity);

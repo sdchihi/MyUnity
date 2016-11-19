@@ -28,6 +28,13 @@ public class MapGenerator : MonoBehaviour
 
 
     void Start() {
+        //Spawner의 이벤트에 여기 OnNewWave를 등록함
+        FindObjectOfType<Spawner>().OnNewWave += OnNewWave;
+       
+    }
+
+    void OnNewWave(int waveNumber) {
+        mapIndex = waveNumber - 1;
         GenerateMap();
     }
 

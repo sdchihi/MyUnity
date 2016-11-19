@@ -29,6 +29,11 @@ public class Spawner : MonoBehaviour {
 
     bool isDisabled;
 
+
+    //chap 14 GameOver  
+    public event System.Action<int> OnNewWave;
+
+
     void Start() {
         playerEntity = FindObjectOfType<Player>();
         playerT = playerEntity.transform;
@@ -107,7 +112,15 @@ public class Spawner : MonoBehaviour {
 
             enemiesRemainingToSpawn = currentWave.enemyCount;
             enemiesRamainingAlive = enemiesRemainingToSpawn;
+
+            //다음 웨이브로 넘어갈때
+            if (OnNewWave != null) {
+                OnNewWave(currentWaveNumber);
+            }
+            ResetPlayerPosition();
         }
+
+
     }
 
     void OnPlayerDeath() {
@@ -121,6 +134,10 @@ public class Spawner : MonoBehaviour {
         if (enemiesRamainingAlive == 0) {
             NextWave();
         }
+    }
+
+    void ResetPlayerPosition() {
+        playerT.position = map.GetTileFromPosition(Vector3.zero).position + Vector3.up * 3;  // 플레이어 위치를 맵의 가운데로 이동시킴. 혹시 떨어질걸 방지해서 up * 3 더해줌
     }
 
 

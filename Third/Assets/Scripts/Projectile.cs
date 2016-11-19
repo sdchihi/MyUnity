@@ -31,7 +31,7 @@ public class Projectile : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         float moveDistance = speed * Time.deltaTime;
-
+        
         CheckCollision(moveDistance);
 
         transform.Translate(Vector3.forward * moveDistance);	
@@ -41,7 +41,7 @@ public class Projectile : MonoBehaviour {
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, moveDistance + skinWidth, collisionMask , QueryTriggerInteraction.Collide)) {
+         if (Physics.Raycast(ray, out hit, moveDistance + skinWidth, collisionMask , QueryTriggerInteraction.Collide)) {
             onHitObject(hit);
         }
     }

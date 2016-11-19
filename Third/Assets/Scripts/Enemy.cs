@@ -49,7 +49,7 @@ public class Enemy : LivingEntity {
             currentState = State.Chasing;
 
             StartCoroutine(UpdatePath());
-
+            
         }
     }
 	

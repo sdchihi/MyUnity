@@ -5,7 +5,7 @@ using System.Collections;
 [RequireComponent(typeof(GunCtr))]
 public class Player : LivingEntity
 {
-
+    
     Camera viewCamera;
     public float moveSpeed = 5.0f;
     PlayerCtr controller;
@@ -35,7 +35,7 @@ public class Player : LivingEntity
         Ray ray = viewCamera.ScreenPointToRay(Input.mousePosition);
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);     //법선
         float rayDistance;
-
+        //이게 카메라부터 그 플레인에 닿는곳 까지 광선을쏨
         //raycast - > 플레인과 인자 ray간의 교차 여부를 알려주는 함수인데 out으로 들어간 인자에 해당 리턴값이 할당되는 그런 기능을하고 있음.
         if (groundPlane.Raycast(ray, out rayDistance))
         {
